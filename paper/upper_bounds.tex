@@ -1,0 +1,277 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs}
+\usepackage[hidelinks]{hyperref}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\F}{\mathbb{F}_2}
+\DeclareMathOperator{\wt}{wt}
+
+\title{A cutting-plane method for exact-size code bounds,\\ with fifteen new upper bounds for binary codes}
+\author{Zhiyang Chen \and Ligeng Zhu \and Fan Long}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Let $A(n,d)$ be the largest size of a binary code of length $n$ and minimum distance $d$.
+We give a general method that lowers upper bounds on $A(n,d)$ found by semidefinite programming, and we
+apply it to many entries with $n\le28$. It improves fifteen of them, for example $A(17,6)\le 339$,
+$A(28,8)\le 32148$ and $A(26,6)\le 84243$. The method fixes the size $M$ of the code and adds, by a cutting-plane
+loop, linear inequalities that are valid for codes of size exactly $M$: for a subspace $V$ of dimension $r$, the code meets
+the $2^r$ cosets of $V^\perp$ in integer numbers of codewords, and these numbers cannot all be equal when
+$2^r\nmid M$. It then excludes $M=\lfloor s\rfloor,\lfloor s\rfloor-1,\dots$ one at a time, where $s$ is a known
+bound, usually the SDP value. Every bound has an exact rational certificate.
+\end{abstract}
+
+\section{Results}
+
+Table~\ref{tab:results} lists the new bounds; the old values are those of Brouwer's table~\cite{Br} in October 2026.
+Since $A(n,d)=A(n-1,d-1)$ for even $d$, each line also bounds $A(n-1,d-1)$.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrlll}
+\toprule
+$(n,d)$ & old & new & SDP & added inequalities & premise \\
+\midrule
+$(17,4)$ & 3276 & \textbf{3272} & Schrijver & coset-count & -- \\
+$(21,4)$ & 43688 & \textbf{43681} & Schrijver & coset-count & -- \\
+$(25,4)$ & 599184 & \textbf{599174} & Schrijver & coset-count & -- \\
+$(22,6)$ & 6941 & \textbf{6939} & Schrijver & coset-count & -- \\
+$(24,6)$ & 24106 & \textbf{24102} & Schrijver & coset-count & -- \\
+$(26,6)$ & 84260 & \textbf{84243} & Schrijver & coset-count & -- \\
+$(27,6)$ & 157285 & \textbf{157281} & Schrijver & coset-count & -- \\
+$(28,6)$ & 291269 & \textbf{291265} & Schrijver & coset-count & -- \\
+$(28,8)$ & 32151 & \textbf{32148} & Schrijver & coset-count & -- \\
+$(17,6)$ & 340 & \textbf{339} & Schrijver & coset-count, Lemma~\ref{lem:mel} & -- \\
+$(18,6)$ & 673 & \textbf{672} & GMS & coset-count ($r=1$) & -- \\
+$(21,10)$ & 47 & \textbf{46} & GMS & coset-count ($r=1$) & -- \\
+\midrule
+$(18,4)$ & 6551 & \textbf{6543} & Schrijver & coset-count, Lemma~\ref{lem:prem}(a) & $A(17,4)\le 3272$ \\
+$(19,4)$ & 13104 & \textbf{13085} & Schrijver & coset-count, Lemma~\ref{lem:prem}(a) & $A(18,4)\le 6544$ \\
+$(27,4)$ & 2396736 & \textbf{2396695} & Schrijver & coset-count, Lemma~\ref{lem:prem}(b) & $A(25,4)\le 599174$ \\
+\bottomrule
+\end{tabular}
+\caption{New upper bounds. The last three use earlier bounds of this table as premises.
+Also $A(26,4)\le 2A(25,4)\le 1198348$ (old 1198368) follows at once.}
+\label{tab:results}
+\end{table}
+
+\section{Notation and set-up}\label{sec:setup}
+
+Let $C\subseteq\F^n$ with $|C|=M$ and minimum distance at least $d$, where $d$ is even.
+Write $A_i=\frac1M|\{(c,c')\in C^2: d(c,c')=i\}|$ for the distance distribution ($A_0=1$, $\sum_i A_i=M$),
+$K_k(i)=\sum_j(-1)^j\binom ij\binom{n-i}{k-j}$ for the Krawtchouk polynomials, and
+$S_u=\sum_{c\in C}(-1)^{u\cdot c}$ for $u\in\F^n$.
+
+\begin{lemma}\label{lem:shell}
+For $0\le k\le n$: \ $\sum_{\wt(u)=k} S_u^2 = M\sum_{i=0}^n A_i K_k(i)$.
+\end{lemma}
+\begin{proof}
+$S_u^2=\sum_{c,c'\in C}(-1)^{u\cdot(c+c')}$, and $\sum_{\wt(u)=k}(-1)^{u\cdot x}=K_k(\wt(x))$.
+\end{proof}
+
+\textbf{Two reductions.} (i) If $C$ is a code with the above parameters, delete one coordinate and add a parity bit:
+the result has the same $n$, $M$ and $d$, and all its weights are even. So we may assume that all
+distances in $C$ are even. (ii) A code with more than $M$ words contains a code with exactly $M$ words.
+Hence, \emph{to prove $A(n,d)\le U$ it suffices to show that no code of size exactly $M=U+1$ exists.}
+
+\textbf{The relaxations.} Schrijver's SDP~\cite{Sch} and the four-point SDP of Gijswijt, Mittelmann and
+Schrijver (GMS)~\cite{GMS} assign to each code $C$ a vector $x_C$ of real variables with these properties:
+$x_C$ satisfies all constraints of the SDP; the objective value at $x_C$ is $|C|$; and, for fixed $M=|C|$,
+each $A_i$ is a linear function of $x_C$. (In Schrijver's SDP, $A_i=\binom ni x^{0}_{i,0}$; in the GMS SDP,
+$A_i=2^n\binom ni\,x(\{v,w\})/M$ for $d(v,w)=i$.) Hence any linear inequality in $(A_i)$ that holds for all
+codes of size $M$ can be added, and if the maximum of the enlarged SDP is less than $M$, no code of size $M$ exists.
+We use constraints of these SDPs that are valid for codes (for GMS a subset of the published blocks), together with
+the even-distance constraints of reduction (i).
+
+\textbf{Certificates.} Write the SDP as: maximize $c^\top x$ subject to $F_k(x)\succeq0$, $g_j(x)\ge0$ and the box
+$0\le x\le b$ (with $b=1$ for Schrijver's SDP and $b=M/2^n$ for GMS), where the $F_k$ are affine maps to symmetric matrices and the $g_j$ are affine. For any
+$Y_k\succeq0$ and $z_j\ge0$, every feasible $x$ satisfies
+$c^\top x\le L(x):=c^\top x+\sum_k\langle Y_k,F_k(x)\rangle+\sum_j z_j g_j(x)$, and $L$ is affine,
+so $\max_{0\le x\le b}L(x)$ is an upper bound. Each of our certificates gives $Y_k=V_kV_k^\top/4^K$ with an
+integer $K$ and integer matrices $V_k$ (so $Y_k\succeq0$ exactly) and rational $z_j\ge0$; the bound is then computed in exact rational
+arithmetic. No floating-point step enters the proof.
+
+\section{The coset-count inequality}
+
+\begin{theorem}\label{thm:main}
+Let $V\le\F^n$ be a subspace of dimension $r$ and let $\rho\in\{0,\dots,2^r-1\}$ with $\rho\equiv M \pmod{2^r}$. Then
+\[
+\sum_{v\in V\setminus\{0\}} S_v^2\ \ge\ \rho\,(2^r-\rho).
+\]
+\end{theorem}
+\begin{proof}
+Choose a basis $u_1,\dots,u_r$ of $V$. For $g\in\F^r$ let $n_g$ be the number of $c\in C$ with
+$(u_1\cdot c,\dots,u_r\cdot c)=g$; these are the intersection sizes of $C$ with the cosets of $V^\perp$.
+For $v=\sum_i a_iu_i$ we have $S_v=\sum_g n_g(-1)^{a\cdot g}$, the Fourier transform of $(n_g)$ on $\F^r$.
+Since $a\mapsto v$ is a bijection $\F^r\to V$, Parseval gives $\sum_{v\in V}S_v^2=2^r\sum_g n_g^2$.
+The $n_g$ are $2^r$ nonnegative integers with sum $M=2^rq+\rho$; the sum of squares is smallest when $\rho$ of them
+equal $q+1$ and the others equal $q$. So $2^r\sum_g n_g^2\ge 2^r\bigl(2^rq^2+2\rho q+\rho\bigr)=M^2+\rho(2^r-\rho)$.
+Subtract $S_0^2=M^2$.
+\end{proof}
+
+The inequality depends on the arrangement of $C$ in space. We average it over all coordinate permutations to get
+an inequality in the distance distribution. Let $m_k$ be the number of words of weight $k$ in $V\setminus\{0\}$.
+
+\begin{theorem}\label{thm:row}
+Under the hypotheses of Theorem~\ref{thm:main},
+$\displaystyle\sum_{k=1}^n \frac{m_k}{\binom nk}\sum_{i=0}^n A_iK_k(i)\ \ge\ \frac{\rho(2^r-\rho)}{M}.$
+\end{theorem}
+\begin{proof}
+Theorem~\ref{thm:main} holds for $\sigma(V)$ for every permutation $\sigma$ of the coordinates.
+Average over $\sigma\in S_n$: a fixed $v$ of weight $k$ is mapped onto each word of weight $k$ equally often,
+so the average of $S_{\sigma(v)}^2$ is $\binom nk^{-1}\sum_{\wt(u)=k}S_u^2$. Apply Lemma~\ref{lem:shell} and divide by $M$.
+\end{proof}
+
+The row is linear in $(A_i)$ and depends only on $M$ and on the weight distribution of $V$.
+For $r=1$ and $M$ odd it says $\sum_iA_iK_k(i)\ge\binom nk/M$: every $S_u$ is odd. The cases $r\le2$ are
+essentially classical parity arguments (Best et al.~\cite{BBMOS}; see also~\cite{AVZ,KT}); the rows with $r\ge3$
+are, as far as we know, new, and they are the ones that matter for most of our bounds. Section~\ref{sec:method} explains how we choose the subspaces.
+
+\section{Inequalities that use a premise}
+
+\begin{lemma}\label{lem:prem}
+Let $|C|=M$.
+\begin{itemize}
+\item[(a)] If $A(n-1,d)\le P$, then $M\le 2P$ and $M\sum_iA_iK_1(i)\le n(2P-M)^2$.
+\item[(b)] For $1\le k<n$: $\sum_i\binom{n-i}{k}A_i\le\binom nk A(n-k,d)$.
+\end{itemize}
+\end{lemma}
+\begin{proof}
+(a) Fix a coordinate $j$ and let $a$ and $M-a$ be the numbers of codewords with $c_j=0$ and $c_j=1$. Each class,
+with coordinate $j$ deleted, is a code of length $n-1$ and distance $\ge d$, so $a\le P$ and $M-a\le P$.
+Hence $M\le 2P$ and $|S_{e_j}|=|2a-M|\le 2P-M$. Sum $S_{e_j}^2$ over $j$ and apply Lemma~\ref{lem:shell} with $k=1$.
+(b) Count triples $(c,c',K)$ with $c,c'\in C$, $K$ a $k$-set of coordinates, and $c,c'$ equal on $K$.
+For fixed $(c,c')$ there are $\binom{n-d(c,c')}{k}$ such $K$. For fixed $(c,K)$ the words $c'$ that equal $c$ on $K$,
+with $K$ deleted, form a code of length $n-k$ and distance $\ge d$, so there are at most $A(n-k,d)$ of them.
+Hence $M\sum_i\binom{n-i}kA_i\le M\binom nkA(n-k,d)$.
+\end{proof}
+
+Both parts are standard counting arguments; cf.~\cite{BBMOS}. The next row needs no premise.
+
+\begin{lemma}[cf.\ \cite{MEL}]\label{lem:mel}
+If $d=2h$ and $q=\lfloor n/h\rfloor$, then $A_{n-h}+q\sum_{i=0}^{h-1}A_{n-i}\le q$.
+\end{lemma}
+\begin{proof}
+Fix $c\in C$ and let $\bar c$ be its complement; $d(c,y)=n-i$ means $d(\bar c,y)=i$. At most one codeword lies at
+distance $<h$ from $\bar c$ (two such would be closer than $2h$). If one, $y$, does, then a codeword $x$ with
+$d(\bar c,x)=h$ would give $d(x,y)<2h$; so there is none. Otherwise, the codewords at distance exactly $h$ from
+$\bar c$ differ from $\bar c$ on $h$-sets that are pairwise disjoint (their mutual distances are $\ge2h$), so
+there are at most $q$ of them. In both cases (number at distance $n-h$ from $c$) $+\,q\cdot$(number at distance
+$>n-h$ from $c$) $\le q$. Average over $c$.
+\end{proof}
+
+\section{The method}\label{sec:method}
+
+Input: $(n,d)$ with $d$ even; a relaxation $R$ (Schrijver's or the GMS SDP with the even-distance constraints);
+optionally premises, i.e.\ known bounds on $A(n-k,d)$, used through Lemma~\ref{lem:prem}.
+\begin{enumerate}
+\item Let $s$ be the value of $R$ (or a known bound such as $2A(n-1,d)$), and set $M:=\lfloor s\rfloor$.
+\item \emph{Exact size.} Add to $R$ the rows of Theorem~\ref{thm:row} for all \emph{block subspaces}
+$V=\langle 1_{T_1},\dots,1_{T_r}\rangle$ with nonempty pairwise disjoint $T_b\subseteq\{1,\dots,n\}$ and $\rho\ne0$;
+for these, $\sum_k m_kz^k=\prod_b(1+z^{|T_b|})-1$. Optionally add the rows of Lemmas~\ref{lem:prem} and~\ref{lem:mel}.
+\item \emph{Separation.} Solve. At the optimum let $\beta_k=M\sum_iA_iK_k(i)/\binom nk$ (for a real code this is the
+average of $S_u^2$ over $\wt(u)=k$, by Lemma~\ref{lem:shell}). The row of $V$ is violated exactly when $\sum_km_k(V)\beta_k<\rho(2^r-\rho)$.
+Search for such $V$ by local search over $r\times\ell$ generator matrices of rank $r$ ($2\le r\le10$, up to $12$ at
+some entries), stored as the multiset of their nonzero columns, add the violated rows, and solve again. Stop when the value is below $M$ or no violated $V$
+is found.
+\item \emph{Certificate.} If the value is below $M$, round the dual solution to rationals, write the PSD multipliers
+as $V_kV_k^\top/4^K$, and compute the bound exactly (Section~\ref{sec:setup}). If it is below $M$, the size $M$ is excluded; set
+$M:=M-1$ and go to step~2. Otherwise stop.
+\end{enumerate}
+Output: if $M_0$ is the last excluded size, then $A(n,d)\le M_0-1$ by reduction (ii).
+Runs with Schrijver's SDP started in double precision (CSDP); the GMS runs and all runs with $n\ge26$ used
+double-double precision (SDPA-DD~\cite{Nak}), and $(21,10)$ needed quad-double precision (SDPA-QD). The numerics never
+enter the proof. (For $(24,6)$ the sizes $24107$ and $24106$ were first excluded by classical parity rows with a case
+split; the proof needs only the certificate for $M=24103$.)
+
+We ran this procedure on many entries with $n\le28$, in particular on those whose upper bound in the table comes
+from linear or semidefinite programming. It improved the fifteen entries of Table~\ref{tab:results}. The descent stops where the
+relaxation becomes feasible at $M$; for instance at $(26,6)$ and $(28,8)$ it is feasible at $M=U$ and the
+separation finds no violated row.
+
+\section{Proofs of the bounds}
+
+By reduction (ii), each bound $A(n,d)\le U$ in Table~\ref{tab:results} follows from one certificate showing that the
+SDP with the added rows, for $M=U+1$, has maximum less than $M$. Table~\ref{tab:certs} gives the certified bounds.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrl}
+\toprule
+$(n,d)$ & $M=U+1$ & certified bound & SDP value without added rows ($\approx$) \\
+\midrule
+$(17,4)$ & 3273 & 3272.153 & 3276.8 \\
+$(21,4)$ & 43682 & 43681.452 & 43690.667 \\
+$(25,4)$ & 599175 & 599173.716 & 599186.288 \\
+$(22,6)$ & 6940 & 6939.701 & 6943.695 \\
+$(24,6)$ & 24103 & 24102.898 & 24107.886 \\
+$(26,6)$ & 84244 & 84243.831 & 84260.571 \\
+$(27,6)$ & 157282 & 157281.944 & 157286.400 \\
+$(28,6)$ & 291266 & 291265.483 & 291271.111 \\
+$(28,8)$ & 32149 & 32148.878 & 32151.796 \\
+$(17,6)$ & 340 & 339.581 & 341.333 (with Lemma~\ref{lem:mel}) \\
+$(18,6)$ & 673 & 672.883 & 673.005 (GMS) \\
+$(21,10)$ & 47 & 46.916 & 47.007 (GMS) \\
+$(18,4)$ & 6544 & 6543.538 & -- \\
+$(19,4)$ & 13086 & 13085.663 & -- \\
+$(27,4)$ & 2396696 & 2396695.99997 & -- \\
+\bottomrule
+\end{tabular}
+\caption{The decisive certificates. A certified bound is an exact rational upper bound on the maximum of the SDP
+with the added rows, here rounded up; the last column is
+for orientation only and is not used in the proofs.}
+\label{tab:certs}
+\end{table}
+
+\paragraph{Bounds without premise.} For the first nine lines the SDP is Schrijver's with coset-count rows only.
+For $(17,6)$ we also add Lemma~\ref{lem:mel}, which reads $A_{14}+5A_{16}\le5$ (odd $A_i$ vanish). Both kinds of
+rows are needed: without the coset-count rows the maximum is $341.33$, and without Lemma~\ref{lem:mel} the solver
+gives about $340.00005$ at $M=340$.
+For $(18,6)$ and $(21,10)$ the size $M$ is odd and the GMS SDP with the $r=1$ rows suffices.
+
+\paragraph{Bounds that use a premise.} Splitting a code by one coordinate gives $A(n,d)\le2A(n-1,d)$, so
+$A(18,4)\le2\cdot3272=6544$; Lemma~\ref{lem:prem}(a) with $P=3272$ excludes $M=6544$. In the same way Lemma~\ref{lem:prem}(a) with $P=6544$ (valid since $A(18,4)\le6544$) excludes $M=13086$. Doubling twice gives
+$A(26,4)\le1198348$ and $A(27,4)\le2396696$; Lemma~\ref{lem:prem}(b) for $k=1,2$ with premises
+$A(26,4)\le1198348$ and $A(25,4)\le599174$ excludes $M=2396696$.
+
+\section{Remarks}
+
+\emph{Numerics and checking.} For $n\ge26$ CSDP reported spurious feasibility, and double-double precision was
+needed. Most certificates were also checked by a second program written independently from Schrijver's
+formulas; for $(21,10)$ the independent check was done on a second certificate from a different implementation of
+the GMS SDP.
+
+\emph{Sanity check.} The same programs do not exclude the sizes of known codes (e.g.\ $(27,81920,6)$ and
+$(28,139264,6)$). A larger gain than ours needs a stronger relaxation.
+
+\emph{Data.} The decisive certificates, the exact checkers and the generator programs are in the data record
+of this paper (\url{https://doi.org/10.5281/zenodo.23599648}).
+
+\emph{Use of AI.} AI tools were used in the computations and in the writing of this paper.
+The authors do not guarantee the correctness of the results.
+
+\begin{thebibliography}{9}
+\bibitem{AVZ} E.~Agrell, A.~Vardy, K.~Zeger, A table of upper bounds for binary codes,
+\emph{IEEE Trans.\ Inform.\ Theory} 47 (2001) 3004--3006.
+\bibitem{BBMOS} M.~R.~Best, A.~E.~Brouwer, F.~J.~MacWilliams, A.~M.~Odlyzko, N.~J.~A.~Sloane,
+Bounds for binary codes of length less than 25, \emph{IEEE Trans.\ Inform.\ Theory} 24 (1978) 81--93.
+\bibitem{Br} A.~E.~Brouwer, Table of general binary codes, \url{https://aeb.win.tue.nl/codes/binary-1.html}.
+\bibitem{GMS} D.~C.~Gijswijt, H.~D.~Mittelmann, A.~Schrijver, Semidefinite code bounds based on quadruple distances,
+\emph{IEEE Trans.\ Inform.\ Theory} 58 (2012) 2697--2705.
+\bibitem{KT} H.~K.~Kim, P.~T.~Toan, Improved semidefinite programming bound on sizes of codes,
+\emph{IEEE Trans.\ Inform.\ Theory} 59 (2013) 7337--7345.
+\bibitem{MEL} B.~Mounits, T.~Etzion, S.~Litsyn, Improved upper bounds on sizes of codes,
+\emph{IEEE Trans.\ Inform.\ Theory} 48 (2002) 880--886.
+\bibitem{Nak} M.~Nakata, A numerical evaluation of highly accurate multiple-precision arithmetic version of
+semidefinite programming solver: SDPA-GMP, -QD and -DD, \emph{Proc.\ IEEE CACSD} (2010) 29--34.
+\bibitem{Sch} A.~Schrijver, New code upper bounds from the Terwilliger algebra and semidefinite programming,
+\emph{IEEE Trans.\ Inform.\ Theory} 51 (2005) 2859--2866.
+\end{thebibliography}
+\end{document}

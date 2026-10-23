@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+message: "If you use these results, please cite the two papers below."
+title: "New bounds on A(n,d) for binary codes (n <= 28): code, data and process"
+authors:
+  - family-names: Chen
+    given-names: Zhiyang
+  - family-names: Zhu
+    given-names: Ligeng
+  - family-names: Long
+    given-names: Fan
+date-released: 2026-10-23
+references:
+  - type: article
+    title: "A cutting-plane method for exact-size code bounds, with fifteen new upper bounds for binary codes"
+    authors:
+      - family-names: Chen
+        given-names: Zhiyang
+      - family-names: Zhu
+        given-names: Ligeng
+      - family-names: Long
+        given-names: Fan
+    year: 2026
+    doi: 10.5281/zenodo.23599648
+  - type: article
+    title: "Orbit unions and exchange walks: seven new lower bounds for binary codes"
+    authors:
+      - family-names: Chen
+        given-names: Zhiyang
+      - family-names: Zhu
+        given-names: Ligeng
+      - family-names: Long
+        given-names: Fan
+    year: 2026
+    doi: 10.5281/zenodo.23599650

@@ -1,0 +1,13 @@
+kind Z2Z4
+a 0
+b 11
+n 22
+d 10
+M 32
+source z4gen/runs/grid/z_11_10_5_1_8_s1.h (agents/z4gen/runs/grid/z_11_10_5_1_8_s1.h)
+aut ?
+gens
+2 2 2 0 2 0 0 0 2 0 0
+2 3 3 1 0 0 1 2 1 1 0
+1 0 2 1 2 1 3 3 0 0 1
+end
